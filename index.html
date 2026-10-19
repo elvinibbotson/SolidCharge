@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  	<title>SolidCharge</title>
+  	<link rel="stylesheet" type="text/css" href="ChargeStyles.css">
+  	<link rel="manifest" href="manifest.json">
+  	<script src='https://cdn.jsdelivr.net/npm/@inrupt/solid-client-authn-browser/dist/solid-client-authn.bundle.js'></script>
+  	<meta name="application-name" content="SolidCharge">
+</head>
+<body>
+<header class="header">
+	<div id="heading">
+        <span id="headerTitle">SolidCharge</span>
+        <button id="buttonSync" class="sync-button">
+    </div>
+</header>
+<div id='main'>
+<div id="listPanel"><ul id="list" class="logList"></ul></div>
+<div id='curtain'></div>
+<div id='buttonNew' class='action-button'></div>
+<div id='messageDialog' class='dialog'></div>
+<div id='monthLogDialog' class='dialog'>
+	<div id='monthData' class='dialog-body'></div>
+	<div class="dialog-buttons">
+	    <button id="buttonDeleteMonth" class="delete-button"></button>
+    </div>
+</div>
+<div id="logDialog" class="dialog">
+    <div class="dialog-body">date <input type="date" id="logDate"/>
+    <span style='float:right;'><input type='number' id='logMiles' min='0' max='99'/> miles</span>
+    </div>
+    <div class="dialog-body">charge from <input type='number' id='logStartCharge' min='0' max='99'/> to <input type='number' id='logEndCharge' min='0' max='99'/> %</div>
+    <div class="dialog-buttons">
+	    <button id="buttonDeleteLog" class="delete-button"></button>
+	  	<button id="buttonAddLog" class="add-button"></button>
+      	<button id="buttonSaveLog" class="save-button"></button>  
+    </div>
+</div>
+</div>
+<script src="ChargeScript.js" async></script>
+</body>
+</html>

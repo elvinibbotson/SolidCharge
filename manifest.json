@@ -1,0 +1,17 @@
+{
+  "name": "SolidCharge PWA",
+  "short_name": "SolidCharge",
+  "icons": [
+	{
+		"src": "Charge.png",
+		"sizes": "512x512",
+		"type": "image/png",
+		"purpose": "maskable"
+	}
+  ],
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation":"portrait",
+  "background_color": "black",
+  "theme_color": "black"
+}

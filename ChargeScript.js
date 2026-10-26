@@ -15,7 +15,8 @@ var currentLog=null
 var currentDialog;
 var startX;
 var months="JanFebMarAprMayJunJulAugSepOctNovDec";
-var latest;
+var syncDay; // latest sync
+var latest; // latest change
 var capacity=48; // usable battery capacity (kWh) for Peugeot e-208
 // solid session & authentication...
 const auth=solidClientAuthentication;
@@ -244,8 +245,9 @@ function save() {
 	var data={'logs': logs,'charges':charges};
 	var json=JSON.stringify(data);
 	window.localStorage.setItem('ChargeData',json);
-	latest=new Date().toString();
 	console.log('data saved to ChargeData');
+	latest=new Date().toString();
+	window.localStorage.setItem('latest',latest);
 }
 // SOLID CODE
 function connect() {
@@ -280,31 +282,34 @@ async function sync() {
 	if(response.ok) {
 		var body=await response.json();
 		console.log('response - last modified: '+response.lastModified);
-		
 		logs=body.logs;
 		charges=body.charges;
 		console.log(logs.length+' logs and '+charges.length+' charges read');
 		logs.sort(function(a,b) {return Date.parse(a.date)-Date.parse(b.date)}); // date order
 		charges.sort(function(a,b) {return Date.parse(a.date)-Date.parse(b.date)});
 		populateList();
-		
 		save();
 		display(logs.length+' logs and '+charges.length+' charges downloaded',false);
+		disconnect();
 	}
 	else { // local data is newer - upload to pod
 		display('|no download - UPLOAD',false);
 		upload();
 	}
-	latest=new Date().toString();
-	window.localStorage.setItem('latest',latest);
-	console.log('latest set to '+latest);
+	syncDay=new Date()/86400000;
+	window.localStorage.setItem('syncDay',syncDay);
 	load(); // ensure working with latest dataset
 }
 async function upload() {
   	if(!session.info.isLoggedIn) {connect(); return;} // ensure connected
   	console.log("UPLOAD",false);
 	var fileName="drive/SolidChargeData.json";
-	console.log(logs.length+" logs and "+charges.length+" charges - save");
+	if(logs.length<1) {
+		message('NO DATA');
+		disconnect();
+		return;
+	}
+	console.log(logs.length+" logs and "+charges.length+" charges - upload");
 	var data={'logs': logs,"charges": charges};
 	var json=JSON.stringify(data);
 	try {
@@ -318,13 +323,26 @@ async function upload() {
     	}
     	console.log('data saved, status: '+response.status);
     	display(logs.length+' logs uploaded');
+    	syncDay=new Date()/86400000;
+		window.localStorage.setItem('syncDay',syncDay);
+		disconnect();
 	}
 	catch(error) {console.error(error.message);alert(error.message);}
+}
+async function disconnect() {
+	var response=await session.logout({logoutType: 'app'});
+	console.log('logout response: ${response.status}');
 }
 // START-UP CODE
 scr.w=screen.width;
 scr.h=screen.height;
 console.log('screen size: '+scr.w+'x'+scr.h+'px');
+syncDay=window.localStorage.getItem('syncDay');
+console.log('latest sync: '+syncDay);
+if(!syncDay) {
+	syncDay=new Date(0)/86400000; // default to 1970
+	window.localStorage.setItem('syncDay',syncDay);
+}
 latest=window.localStorage.getItem('latest');
 if(!latest) {
 	latest=new Date(0).toString(); // default to 1970
@@ -332,6 +350,7 @@ if(!latest) {
 }
 console.log('latest change: '+latest);
 load();
+if(new Date()/86400000-syncDay>5) message('More than 5 days since last sync.');
 // implement service worker if browser is PWA friendly 
 if (navigator.serviceWorker.controller) {
 	console.log('Active service worker found, no need to register')
